@@ -1,23 +1,69 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+
+import { saveAs } from "file-saver";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  FootnoteReferenceRun,
+} from "docx";
+
+const footnotes = {
+  1: {
+    children: [
+      new Paragraph({
+        text: "    This is the first footnote",
+      }),
+    ],
+  },
+  2: {
+    children: [
+      new Paragraph({
+        text: "    This is the second footnote",
+      }),
+    ],
+  },
+};
 
 function App() {
+  const generate = () => {
+    const doc = new Document({
+      sections: [
+        {
+          children: [
+            new Paragraph({
+              style: "paragraph",
+              children: [
+                new TextRun({
+                  children: ["Some Text.", new FootnoteReferenceRun(1)],
+                }),
+                new TextRun({
+                  children: [
+                    "Some Additional Text.",
+                    new FootnoteReferenceRun(2),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        },
+      ],
+      footnotes,
+    });
+
+    Packer.toBlob(doc).then((blob) => {
+      saveAs(blob, "example.docx");
+    });
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <p>
+        Click the button and observe the footnote number duplicating every
+        click.
+        <button onClick={generate}>Generate doc</button>
+      </p>
     </div>
   );
 }
